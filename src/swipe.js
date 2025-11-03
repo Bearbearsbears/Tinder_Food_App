@@ -2,10 +2,10 @@ startx = 0;
 endx= 0;
 //observes whether or not the user has touched screen and/or finished touching screen
 //horizontal axis
-touch.addEventListener('start', function (event) {
+touch.addEventListener('start', function (e) {
   startx = e.changedTouches[0].screenX;
 })
-touch.addEventListener('end', function (event){
+touch.addEventListener('end', function (e){
   endx= e.changedTouches[0].screenX;
   checkDirection();
 })
