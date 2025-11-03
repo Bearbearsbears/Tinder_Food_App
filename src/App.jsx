@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { PLACES } from "./places.js"
+import useSwipe from "./swipe.js"
 
 export default function App() {
   const [index, setIndex] = useState(0)
@@ -10,8 +11,14 @@ export default function App() {
     setIndex((i) => i + 1)
   }
 
+  const swipeHandlers = useSwipe(
+    () => handleSwipe("left"),  
+    () => handleSwipe("right")  
+  )
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-900 text-white">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-900 text-white"
+      {...swipeHandlers}>
       {current ? (
         <>
           <div className="w-80 bg-zinc-800 rounded-2xl overflow-hidden shadow-lg">
