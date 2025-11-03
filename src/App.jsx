@@ -1,6 +1,32 @@
-import { useState } from "react"
-import { PLACES } from "./places.js"
+import { useEffect, useState } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "./firebase";
 
+import { PLACES } from "./places.js";
+import Login from "./Login";
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u || null);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!user) return <Login />;
+  
 export default function App() {
   const [index, setIndex] = useState(0)
   const current = PLACES[index]
