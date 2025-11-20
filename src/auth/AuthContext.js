@@ -11,6 +11,7 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
+import { auth, googleProvider } from "../firebase/client"; 
 type AuthValue = {
   user: User | null;
   loading: boolean;
