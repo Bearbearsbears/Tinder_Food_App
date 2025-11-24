@@ -10,8 +10,11 @@ const firebaseConfig = {
   messagingSenderId: "YOUR_MESSAGING_SENDER_ID_HERE",
   appId: "YOUR_APP_ID_HERE",
 };
-
+//initializes firebase
 const app = initializeApp(firebaseConfig);
+// auth context export
 export const auth = getAuth(app);
+//exporting login w google provider
 export const googleProvider = new GoogleAuthProvider();
+// firestore for saving likes/dislikes
 export const db = getFirestore(app);
