@@ -89,7 +89,7 @@ export default function App() {
           <h1 className="text-2xl font-bold mb-4 text-center">Your Favorites</h1>
 
           {favorites.length === 0 ? (
-            <p className="text-zinc-400 text-center">No favorites yet 😔</p>
+            <p className="text-zinc-400 text-center">No favorites yet </p>
           ) : (
             <div className="flex flex-col gap-4">
               {favorites.map((item, i) => (
