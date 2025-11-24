@@ -10,7 +10,7 @@ Step 3. Extract Zip File and move the inner folder from the outer folder to the 
 Step 4. Move into the Tinder_Food_App-MVP_Milestone folder Using: cd .\Tinder_Food_App-MVP_Milestone\ (Make sure your pathway is correct, if you put the folder in the C Drive make sure the bash command is 
 C:\> cd .\Tinder_Food_App-MVP_Milestone\)
 
-Step 5. Install NPM, with the command: npm install --legacy-peer-deps
+Step 5. Install NPM, with the command: npm install --legacy-peer-deps, then this: npm audit fix
 
 Step 6. Run the command: npm run dev and then wait till it shows ROLLDOWN-VITE, next enter the letter o, then press enter. This opens a browser to the webapp.
 
