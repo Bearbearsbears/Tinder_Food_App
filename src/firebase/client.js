@@ -1,3 +1,4 @@
+console.log("API KEY:", import.meta.env.VITE_FB_API_KEY);
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
