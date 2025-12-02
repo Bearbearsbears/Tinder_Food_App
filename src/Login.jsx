@@ -118,7 +118,7 @@ export default function Login() {
               fontWeight: 900,
             }}
           >
-            Eater&apos;s Hack
+            BiteSwipe
           </h1>
           <p
             style={{
