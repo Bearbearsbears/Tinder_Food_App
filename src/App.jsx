@@ -5,31 +5,28 @@ import useSwipe from "./swipe.js";
 import Login from "./Login";
 
 // Yelp API Key
-const YELP_API_KEY = "lpNiV557Qvw3rchNjF0I-Xrfdsj31w8yzu8_pP5tTOYak1KofQ0s4ueHNoWrbZ8RmYoTHQhgeeZ18QIOzTu6tIag7_VR52q-dFFJIIeR8DkDhv6BxFVO9CfjU7EsaXYx";
+const YELP_API_KEY =
+  "lpNiV557Qvw3rchNjF0I-Xrfdsj31w8yzu8_pP5tTOYak1KofQ0s4ueHNoWrbZ8RmYoTHQhgeeZ18QIOzTu6tIag7_VR52q-dFFJIIeR8DkDhv6BxFVO9CfjU7EsaXYx";
 
-// CORS Proxy
-const YELP_BASE_URL =
+// Yelp Search endpoint
+const YELP_SEARCH_URL =
   "https://cors-anywhere.herokuapp.com/https://api.yelp.com/v3/businesses/search";
 
 export default function App() {
-  // Firebase Login State
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Yelp / Location State
   const [zip, setZip] = useState("");
   const [restaurants, setRestaurants] = useState([]);
   const [loadingRestaurants, setLoadingRestaurants] = useState(false);
   const [error, setError] = useState("");
 
-  // Swipe / Favorites State
   const [index, setIndex] = useState(0);
   const [favorites, setFavorites] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
 
   const current = restaurants[index] || null;
 
-  // Firebase Auth Listener
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u || null);
@@ -51,9 +48,9 @@ export default function App() {
       setIndex(0);
 
       const res = await fetch(
-        `${YELP_BASE_URL}?location=${encodeURIComponent(
+        `${YELP_SEARCH_URL}?location=${encodeURIComponent(
           zip
-        )}&categories=restaurants&limit=8`, // ask Yelp for 8
+        )}&categories=restaurants&limit=8`,
         {
           headers: {
             Authorization: `Bearer ${YELP_API_KEY}`,
@@ -73,17 +70,23 @@ export default function App() {
         );
       }
 
-      const mapped = data.businesses.map((b) => ({
-        id: b.id,
-        name: b.name,
-        img: b.image_url,
-        cuisine: b.categories?.map((c) => c.title).join(", ") || "Restaurant",
-        price: b.price || "$$",
-        rating: b.rating,
-        desc: b.location?.address1 || "No description",
-      }));
+      const mapped = data.businesses.map((b) => {
+        const fullAddress =
+          b.location?.display_address?.join(", ") ||
+          b.location?.address1 ||
+          "Address not available";
 
-      // capped to 8 restaurants
+        return {
+          id: b.id,
+          name: b.name,
+          img: b.image_url,
+          cuisine: b.categories?.map((c) => c.title).join(", ") || "Restaurant",
+          price: b.price || "$$",
+          rating: b.rating,
+          address: fullAddress,
+        };
+      });
+
       setRestaurants(mapped.slice(0, 8));
     } catch (err) {
       console.error(err);
@@ -110,18 +113,15 @@ export default function App() {
     setIndex((i) => i + 1);
   };
 
-  // Hook up swipe.js
   const swipeHandlers = useSwipe(
     () => handleSwipe("left"),
     () => handleSwipe("right")
   );
 
-  // Logout
   const logOut = async () => {
     await signOut(auth);
   };
 
-  // Auth loading screen
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white">
@@ -130,12 +130,10 @@ export default function App() {
     );
   }
 
-  // If not logged in, show Login component
   if (!user) {
     return <Login />;
   }
 
-  // Main App after login
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-zinc-900 text-white p-6">
       {/* Navigation */}
@@ -162,7 +160,7 @@ export default function App() {
         </button>
       </div>
 
-      {showFavorites ? ( // This shows the favorites page
+      {showFavorites ? (
         <div className="w-full max-w-md">
           <h1 className="text-2xl font-bold mb-4 text-center">Your Favorites</h1>
 
@@ -187,7 +185,7 @@ export default function App() {
                     <p className="text-sm text-zinc-400">
                       {item.price} • ⭐ {item.rating}
                     </p>
-                    <p className="text-sm mt-2">{item.desc}</p>
+                    <p className="text-sm text-zinc-400 mt-1">{item.address}</p>
                   </div>
                 </div>
               ))}
@@ -202,7 +200,6 @@ export default function App() {
               placeholder="Enter ZIP code..."
               value={zip}
               onChange={(e) => setZip(e.target.value)}
-              // Shows the input box to search zip codes
             />
 
             <button
@@ -213,21 +210,21 @@ export default function App() {
             </button>
           </div>
 
-          {error && ( // Error message
+          {error && (
             <p className="text-sm text-rose-400 mb-4 text-center max-w-md">
               {error}
             </p>
           )}
 
-          {loadingRestaurants && ( // Shows a loading message
+          {loadingRestaurants && (
             <p className="text-zinc-400 mb-4">Loading restaurants…</p>
           )}
 
-          {current ? ( // Shows the main swiping card
+          {current ? (
             <>
               <div
                 className="
-                  w-80 bg-zinc-800 rounded-2xl overflow-hidden shadow-lg
+                  w-96 bg-zinc-800 rounded-2xl overflow-hidden shadow-lg
                   select-none cursor-grab active:cursor-grabbing
                 "
                 {...swipeHandlers}
@@ -235,7 +232,7 @@ export default function App() {
                 <img
                   src={current.img}
                   alt={current.name}
-                  className="w-full h-60 object-cover"
+                  className="w-full h-80 object-cover"
                   draggable={false}
                 />
                 <div className="p-4 select-none">
@@ -244,12 +241,14 @@ export default function App() {
                   <p className="text-sm text-zinc-400">
                     {current.price} • ⭐ {current.rating}
                   </p>
-                  <p className="text-sm mt-2">{current.desc}</p>
+                  <p className="text-sm text-zinc-400 mt-1">
+                    {current.address}
+                  </p>
                 </div>
               </div>
 
-              {/* This shows the swipe buttons */}
-              <div className="flex gap-8 mt-6"> 
+              {/* Swipe buttons */}
+              <div className="flex gap-8 mt-6">
                 <button
                   onClick={() => handleSwipe("left")}
                   className="h-14 w-14 rounded-full bg-rose-600 hover:bg-rose-500 flex items-center justify-center text-2xl shadow-lg"
