@@ -3,12 +3,12 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_AUTH_DOMAIN_HERE",
-  projectId: "YOUR_PROJECT_ID_HERE",
-  storageBucket: "YOUR_STORAGE_BUCKET_HERE",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID_HERE",
-  appId: "YOUR_APP_ID_HERE",
+  apiKey: "AIzaSyAMMaHfblXxUhz7LJpi2LEREJnDCqFxSx0",
+  authDomain: "foodtinder-4bb14.firebaseapp.com",
+  projectId: "foodtinder-4bb14",
+  storageBucket: "foodtinder-4bb14.firebasestorage.app",
+  messagingSenderId: "593952674549",
+  appId: "1:593952674549:web:07a08254f3db4eefaeabbc",
 };
 //initializes firebase
 const app = initializeApp(firebaseConfig);
