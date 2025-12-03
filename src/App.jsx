@@ -16,7 +16,7 @@ const YELP_API_KEY =
 const YELP_SEARCH_URL =
   "https://cors-anywhere.herokuapp.com/https://api.yelp.com/v3/businesses/search";
 
-// -------------------- HOME SCREEN (main app UI) --------------------
+// HOME SCREEN (main app UI)
 function HomeScreen({ user, favorites, setFavorites }) {
   const [zip, setZip] = useState("");
   const [restaurants, setRestaurants] = useState([]);
