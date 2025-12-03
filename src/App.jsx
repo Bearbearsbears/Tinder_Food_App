@@ -6,6 +6,11 @@ import { auth } from "./firebase/client";
 import { PLACES } from "./places.js";
 import Login from "./Login";
 
+import React from "react";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { ProfileScreen } from "./ProfileScreen";
+import { SettingsScreen } from "./SettingsScreen";
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +46,15 @@ export default function App() {
 
   if (!user) {
     return <Login />;
+  if (!user) return <Login />;
+}  
+export default function App() {
+  const [index, setIndex] = useState(0)
+  const current = PLACES[index]
+
+  const handleSwipe = (dir) => {
+    console.log(`Pressed ${dir} on`, current.name)
+    setIndex((i) => i + 1)
   }
 
   return (
@@ -89,5 +103,21 @@ export default function App() {
         <p className="text-zinc-400">No more restaurants</p>
       )}
     </div>
+  );
+}
+export default function App() {
+  return (
+    <BrowserRouter>
+      <nav style={{ padding: 12 }}>
+        <Link to="/profile" style={{ marginRight: 12 }}>Profile</Link>
+        <Link to="/settings">Settings</Link>
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<div style={{padding:20}}>Open <Link to="/profile">Profile</Link> or <Link to="/settings">Settings</Link></div>} />
+        <Route path="/profile" element={<ProfileScreen />} />
+        <Route path="/settings" element={<SettingsScreen />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
