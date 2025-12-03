@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth, db } from "./firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import useSwipe from "./swipe.js";
 import Login from "./Login";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
@@ -15,17 +16,36 @@ const YELP_API_KEY =
 const YELP_SEARCH_URL =
   "https://cors-anywhere.herokuapp.com/https://api.yelp.com/v3/businesses/search";
 
-// HOME SCREEN (main app UI)
-function HomeScreen() {
+// -------------------- HOME SCREEN (main app UI) --------------------
+function HomeScreen({ user, favorites, setFavorites }) {
   const [zip, setZip] = useState("");
   const [restaurants, setRestaurants] = useState([]);
   const [loadingRestaurants, setLoadingRestaurants] = useState(false);
   const [error, setError] = useState("");
   const [index, setIndex] = useState(0);
-  const [favorites, setFavorites] = useState([]);
   const [showFavorites, setShowFavorites] = useState(false);
 
   const current = restaurants[index] || null;
+
+  // Save entire favorites array to Firestore
+  const saveFavoritesToFirestore = async (items) => {
+    if (!user) return;
+    try {
+      const ref = doc(db, "favorites", user.uid);
+      console.log("Saving favorites to Firestore:", items);
+      await setDoc(ref, { items });
+    } catch (err) {
+      console.error("Error saving favorites to Firestore:", err);
+    }
+  };
+
+  // Reset favorites (state + Firestore only)
+  const resetFavorites = async () => {
+    if (!user) return;
+    const empty = [];
+    setFavorites(empty);
+    await saveFavoritesToFirestore(empty);
+  };
 
   // Yelp Fetch
   const fetchRestaurants = async () => {
@@ -99,7 +119,11 @@ function HomeScreen() {
     if (dir === "right") {
       setFavorites((prev) => {
         if (prev.some((p) => p.id === current.id)) return prev;
-        return [...prev, current];
+
+        const updated = [...prev, current];
+        // Save full updated array to Firestore (non-blocking)
+        saveFavoritesToFirestore(updated);
+        return updated;
       });
     }
 
@@ -144,29 +168,42 @@ function HomeScreen() {
           {favorites.length === 0 ? (
             <p className="text-zinc-400 text-center">No favorites yet</p>
           ) : (
-            <div className="flex flex-col gap-4">
-              {favorites.map((item, i) => (
-                <div
-                  key={item.id || i}
-                  className="bg-zinc-800 rounded-xl overflow-hidden shadow-lg select-none"
+            <>
+              <div className="flex justify-end mb-3">
+                <button
+                  onClick={resetFavorites}
+                  className="px-3 py-1 text-sm bg-zinc-700 hover:bg-zinc-600 rounded-lg"
                 >
-                  <img
-                    src={item.img}
-                    alt={item.name}
-                    className="w-full h-40 object-cover"
-                    draggable={false}
-                  />
-                  <div className="p-4 select-none">
-                    <h2 className="text-xl font-bold">{item.name}</h2>
-                    <p className="text-sm text-zinc-400">{item.cuisine}</p>
-                    <p className="text-sm text-zinc-400">
-                      {item.price} • ⭐ {item.rating}
-                    </p>
-                    <p className="text-sm text-zinc-400 mt-1">{item.address}</p>
+                  Reset Favorites
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {favorites.map((item, i) => (
+                  <div
+                    key={item.id || i}
+                    className="bg-zinc-800 rounded-xl overflow-hidden shadow-lg select-none"
+                  >
+                    <img
+                      src={item.img}
+                      alt={item.name}
+                      className="w-full h-40 object-cover"
+                      draggable={false}
+                    />
+                    <div className="p-4 select-none">
+                      <h2 className="text-xl font-bold">{item.name}</h2>
+                      <p className="text-sm text-zinc-400">{item.cuisine}</p>
+                      <p className="text-sm text-zinc-400">
+                        {item.price} • ⭐ {item.rating}
+                      </p>
+                      <p className="text-sm text-zinc-400 mt-1">
+                        {item.address}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       ) : (
@@ -253,11 +290,15 @@ function HomeScreen() {
   );
 }
 
-// MAIN APP (auth + router + profile/settings)
+// MAIN APP (auth + router + favorites state)
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
+  // favorites live at top level so they survive route changes + logout/login
+  const [favorites, setFavorites] = useState([]);
+
+  // Auth listener
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u || null);
@@ -265,6 +306,31 @@ export default function App() {
     });
     return () => unsub();
   }, []);
+
+  // Load favorites from Firestore whenever user logs in
+  useEffect(() => {
+    if (!user) return; // doesn't clear favorites here anymore
+
+    const loadFavorites = async () => {
+      try {
+        const ref = doc(db, "favorites", user.uid);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          const data = snap.data();
+          console.log("Loaded favorites from Firestore:", data);
+          setFavorites(data.items || []);
+        } else {
+          console.log("No favorites doc yet for this user");
+          setFavorites([]); // first time this user uses favorites
+        }
+      } catch (err) {
+        console.error("Error loading favorites from Firestore:", err);
+      }
+    };
+
+    loadFavorites();
+  }, [user]);
 
   if (authLoading) {
     return (
@@ -281,13 +347,28 @@ export default function App() {
   return (
     <BrowserRouter>
       <nav className="w-full bg-zinc-800 text-white px-6 py-3 flex justify-center gap-10 shadow-md">
-        <Link to="/" className="hover:text-zinc-300">Home</Link>
-        <Link to="/profile" className="hover:text-zinc-300">Profile</Link>
-        <Link to="/settings" className="hover:text-zinc-300">Settings</Link>
+        <Link to="/" className="hover:text-zinc-300">
+          Home
+        </Link>
+        <Link to="/profile" className="hover:text-zinc-300">
+          Profile
+        </Link>
+        <Link to="/settings" className="hover:text-zinc-300">
+          Settings
+        </Link>
       </nav>
 
       <Routes>
-        <Route path="/" element={<HomeScreen />} />
+        <Route
+          path="/"
+          element={
+            <HomeScreen
+              user={user}
+              favorites={favorites}
+              setFavorites={setFavorites}
+            />
+          }
+        />
         <Route path="/profile" element={<ProfileScreen />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
