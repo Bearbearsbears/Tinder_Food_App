@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import useSwipe from "./swipe.js";
 import Login from "./Login";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { ProfileScreen } from "./ProfileScreen";
+import Settings from "./Settings";
 
 // Yelp API Key
 const YELP_API_KEY =
@@ -12,10 +15,8 @@ const YELP_API_KEY =
 const YELP_SEARCH_URL =
   "https://cors-anywhere.herokuapp.com/https://api.yelp.com/v3/businesses/search";
 
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
-
+// HOME SCREEN (your main app UI)
+function HomeScreen() {
   const [zip, setZip] = useState("");
   const [restaurants, setRestaurants] = useState([]);
   const [loadingRestaurants, setLoadingRestaurants] = useState(false);
@@ -26,14 +27,6 @@ export default function App() {
   const [showFavorites, setShowFavorites] = useState(false);
 
   const current = restaurants[index] || null;
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u || null);
-      setAuthLoading(false);
-    });
-    return () => unsub();
-  }, []);
 
   // Yelp Fetch
   const fetchRestaurants = async () => {
@@ -80,7 +73,8 @@ export default function App() {
           id: b.id,
           name: b.name,
           img: b.image_url,
-          cuisine: b.categories?.map((c) => c.title).join(", ") || "Restaurant",
+          cuisine:
+            b.categories?.map((c) => c.title).join(", ") || "Restaurant",
           price: b.price || "$$",
           rating: b.rating,
           address: fullAddress,
@@ -122,34 +116,18 @@ export default function App() {
     await signOut(auth);
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white">
-        Loading…
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Login />;
-  }
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-zinc-900 text-white p-6">
-      {/* Navigation */}
       <div className="w-full flex justify-between mb-6">
         <button
-          onClick={() => setShowFavorites(false)}
-          className="px-4 py-2 bg-zinc-700 rounded-lg hover:bg-zinc-600"
+          onClick={() => setShowFavorites((prev) => !prev)}
+          className={
+            showFavorites
+              ? "px-4 py-2 bg-zinc-700 rounded-lg hover:bg-zinc-600"
+              : "px-4 py-2 bg-emerald-700 rounded-lg hover:bg-emerald-600"
+          }
         >
-          Home
-        </button>
-
-        <button
-          onClick={() => setShowFavorites(true)}
-          className="px-4 py-2 bg-emerald-700 rounded-lg hover:bg-emerald-600"
-        >
-          Favorites ({favorites.length})
+          {showFavorites ? "Home" : `Favorites (${favorites.length})`}
         </button>
 
         <button
@@ -247,7 +225,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Swipe buttons */}
               <div className="flex gap-8 mt-6">
                 <button
                   onClick={() => handleSwipe("left")}
@@ -274,5 +251,47 @@ export default function App() {
         </>
       )}
     </div>
+  );
+}
+
+// MAIN APP (auth + router + profile/settings)
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u || null);
+      setAuthLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  return (
+    <BrowserRouter>
+      <nav className="w-full bg-zinc-800 text-white px-6 py-3 flex justify-center gap-10 shadow-md">
+        <Link to="/" className="hover:text-zinc-300">Home</Link>
+        <Link to="/profile" className="hover:text-zinc-300">Profile</Link>
+        <Link to="/settings" className="hover:text-zinc-300">Settings</Link>
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<HomeScreen />} />
+        <Route path="/profile" element={<ProfileScreen />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
