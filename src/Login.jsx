@@ -1,4 +1,3 @@
-// src/Login.jsx
 import { useState } from "react";
 import { auth, googleProvider } from "./firebase";
 import {
@@ -6,7 +5,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
-
+//imports above from firebase to allow sign ins 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -15,6 +14,7 @@ export default function Login() {
   const [creating, setCreating] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  
   const handleSignIn = async () => {
     setError("");
     if (!email || !pass) {
@@ -61,7 +61,7 @@ export default function Login() {
       setGoogleLoading(false);
     }
   };
-
+//css
   return (
     <div
       style={{
@@ -86,7 +86,6 @@ export default function Login() {
           border: "1px solid #ff1a1a88",
         }}
       >
-        {/* Header */}
         <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
           <div
             style={{
@@ -132,7 +131,6 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Error box */}
         {error && (
           <div
             style={{
@@ -150,7 +148,7 @@ export default function Login() {
           </div>
         )}
 
-        {/* Inputs */}
+      
         <div
           style={{
             display: "grid",
@@ -225,7 +223,8 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Sign in button */}
+{//sign in
+}
         <button
           type="button"
           onClick={handleSignIn}
@@ -251,7 +250,8 @@ export default function Login() {
           {signingIn ? "Signing in..." : "Sign in"}
         </button>
 
-        {/* Create account button */}
+{//create acc
+}
         <button
           type="button"
           onClick={handleCreateAccount}
@@ -274,7 +274,6 @@ export default function Login() {
           {creating ? "Creating..." : "Create account"}
         </button>
 
-        {/* Divider */}
         <div
           style={{
             display: "flex",
@@ -302,8 +301,7 @@ export default function Login() {
           ></div>
         </div>
 
-        {/* Google button */}
-        <button
+         <button
           type="button"
           onClick={handleGoogle}
           disabled={googleLoading}
