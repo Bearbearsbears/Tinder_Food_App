@@ -7,6 +7,7 @@ import Login from "./Login";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { ProfileScreen } from "./ProfileScreen";
 import Settings from "./Settings";
+import Sort from "./sort"; 
 
 // Yelp API Key
 const YELP_API_KEY =
@@ -25,7 +26,64 @@ function HomeScreen({ user, favorites, setFavorites }) {
   const [index, setIndex] = useState(0);
   const [showFavorites, setShowFavorites] = useState(false);
 
-  const current = restaurants[index] || null;
+  // Meal filter state
+  const [filter, setFilter] = useState("all");
+
+  // Helper to classify Yelp businesses
+  const getMealTypeFromYelp = (business) => {
+    const title = (business.name || "").toLowerCase();
+    const aliases = (business.categories || []).map((c) =>
+      (c.alias || c.title || "").toLowerCase()
+    );
+
+    const breakfastAliases = [
+      "breakfast_brunch",
+      "cafes",
+      "coffee",
+      "donuts",
+      "bagels",
+      "bakeries",
+    ];
+    if (
+      aliases.some((a) => breakfastAliases.includes(a)) ||
+      title.includes("breakfast") ||
+      title.includes("brunch")
+    ) {
+      return "Breakfast";
+    }
+
+    const lunchAliases = [
+      "sandwiches",
+      "burgers",
+      "pizza",
+      "mexican",
+      "salad",
+      "vegan",
+      "vegetarian",
+      "hotdogs",
+      "chinese",
+      "japanese",
+      "thai",
+    ];
+    if (aliases.some((a) => lunchAliases.includes(a))) {
+      return "Lunch";
+    }
+
+    // Default to Dinner
+    return "Dinner";
+  };
+
+  // Filter restaurants by mealType
+  const filteredRestaurants = restaurants.filter((r) =>
+    filter === "all" ? true : r.mealType === filter
+  );
+
+  const current = filteredRestaurants[index] || null;
+
+  // Whenever the set of restaurants or filter changes, reset index
+  useEffect(() => {
+    setIndex(0);
+  }, [filter, restaurants]);
 
   // Save entire favorites array to Firestore
   const saveFavoritesToFirestore = async (items) => {
@@ -82,11 +140,15 @@ function HomeScreen({ user, favorites, setFavorites }) {
         );
       }
 
-      const mapped = data.businesses.map((b) => {
+      const businesses = data.businesses || [];
+
+      const mapped = businesses.map((b) => {
         const fullAddress =
           b.location?.display_address?.join(", ") ||
           b.location?.address1 ||
           "Address not available";
+
+        const mealType = getMealTypeFromYelp(b);
 
         return {
           id: b.id,
@@ -97,6 +159,7 @@ function HomeScreen({ user, favorites, setFavorites }) {
           price: b.price || "$$",
           rating: b.rating,
           address: fullAddress,
+          mealType, 
         };
       });
 
@@ -199,6 +262,11 @@ function HomeScreen({ user, favorites, setFavorites }) {
                       <p className="text-sm text-zinc-400 mt-1">
                         {item.address}
                       </p>
+                      {item.mealType && (
+                        <p className="text-xs text-zinc-500 mt-1">
+                          {item.mealType}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -208,7 +276,7 @@ function HomeScreen({ user, favorites, setFavorites }) {
         </div>
       ) : (
         <>
-          <div className="w-full max-w-md mb-6 flex gap-2">
+          <div className="w-full max-w-md mb-4 flex gap-2">
             <input
               className="flex-1 px-3 py-2 rounded-lg bg-zinc-800 text-white"
               placeholder="Enter ZIP code..."
@@ -222,6 +290,11 @@ function HomeScreen({ user, favorites, setFavorites }) {
             >
               Search
             </button>
+          </div>
+
+          {/* Sort buttons (Breakfast / Lunch / Dinner / All) */}
+          <div className="w-full max-w-md mb-4">
+            <Sort onFilterChange={setFilter} />
           </div>
 
           {error && (
@@ -258,6 +331,11 @@ function HomeScreen({ user, favorites, setFavorites }) {
                   <p className="text-sm text-zinc-400 mt-1">
                     {current.address}
                   </p>
+                  {current.mealType && (
+                    <p className="text-xs text-zinc-500 mt-1">
+                      {current.mealType}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -281,6 +359,8 @@ function HomeScreen({ user, favorites, setFavorites }) {
             <p className="text-zinc-400 mt-10 text-center">
               {restaurants.length === 0
                 ? "Enter a ZIP code and press Search."
+                : filteredRestaurants.length === 0
+                ? "No restaurants match this filter."
                 : "No more restaurants. Try another ZIP!"}
             </p>
           )}
