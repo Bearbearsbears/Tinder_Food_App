@@ -37,7 +37,7 @@ function HomeScreen({ user, favorites, setFavorites }) {
       case "Lunch":
         return "sandwiches,burgers,pizza,mexican,salad,vegan,vegetarian,hotdogs,chinese,japanese,thai";
       case "Dinner":
-        // You can tweak this if you want more specific dinner tags
+        // We can tweak this if we want more specific dinner tags
         return "restaurants";
       default: // "all"
         return "restaurants";
