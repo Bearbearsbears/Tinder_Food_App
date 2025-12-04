@@ -37,7 +37,6 @@ function HomeScreen({ user, favorites, setFavorites }) {
       case "Lunch":
         return "sandwiches,burgers,pizza,mexican,salad,vegan,vegetarian,hotdogs,chinese,japanese,thai";
       case "Dinner":
-        // You can tweak this if you want more specific dinner tags
         return "restaurants";
       default: // "all"
         return "restaurants";
@@ -336,7 +335,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // favorites live at top level so they survive route changes + logout/login
+  // favorites live at top level so they stay during page changes + logout/login
   const [favorites, setFavorites] = useState([]);
 
   // Auth listener
