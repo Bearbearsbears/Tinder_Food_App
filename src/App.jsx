@@ -402,11 +402,15 @@ export default function App() {
         <Route
           path="/"
           element={
-            <HomeScreen
-              user={user}
-              favorites={favorites}
-              setFavorites={setFavorites}
-            />
+            <>
+              <Sort/>
+              <HomeScreen
+                user={user}
+                favorites={favorites}
+                setFavorites={setFavorites}
+              />
+            </>
+            
           }
         />
         <Route path="/profile" element={<ProfileScreen />} />
