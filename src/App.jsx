@@ -7,6 +7,7 @@ import Login from "./Login";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { ProfileScreen } from "./ProfileScreen";
 import Settings from "./Settings";
+import Sort from "./sort";
 
 // Yelp API Key
 const YELP_API_KEY =
@@ -362,11 +363,15 @@ export default function App() {
         <Route
           path="/"
           element={
-            <HomeScreen
-              user={user}
-              favorites={favorites}
-              setFavorites={setFavorites}
-            />
+            <>
+              <Sort/>
+              <HomeScreen
+                user={user}
+                favorites={favorites}
+                setFavorites={setFavorites}
+              />
+            </>
+            
           }
         />
         <Route path="/profile" element={<ProfileScreen />} />
