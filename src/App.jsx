@@ -37,7 +37,6 @@ function HomeScreen({ user, favorites, setFavorites }) {
       case "Lunch":
         return "sandwiches,burgers,pizza,mexican,salad,vegan,vegetarian,hotdogs,chinese,japanese,thai";
       case "Dinner":
-        // We can tweak this if we want more specific dinner tags
         return "restaurants";
       default: // "all"
         return "restaurants";
@@ -121,7 +120,6 @@ function HomeScreen({ user, favorites, setFavorites }) {
           price: b.price || "$$",
           rating: b.rating,
           address: fullAddress,
-          // label by current filter so favorites can show it
           mealType: filter === "all" ? null : filter,
         };
       });
@@ -166,7 +164,14 @@ function HomeScreen({ user, favorites, setFavorites }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start bg-zinc-900 text-white p-6">
+    <div
+      className="min-h-screen flex flex-col items-center justify-start text-white p-6"
+      style={{
+        background: "linear-gradient(135deg, #000000, #330000, #000000)",
+        fontFamily:
+          "'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
+    >
       <div className="w-full flex justify-between mb-6">
         <button
           onClick={() => setShowFavorites((prev) => !prev)}
@@ -192,7 +197,7 @@ function HomeScreen({ user, favorites, setFavorites }) {
           <h1 className="text-2xl font-bold mb-4 text-center">Your Favorites</h1>
 
           {favorites.length === 0 ? (
-            <p className="text-zinc-400 text-center">No favorites yet</p>
+            <p className="text-zinc-300 text-center">No favorites yet</p>
           ) : (
             <>
               <div className="flex justify-end mb-3">
@@ -208,7 +213,7 @@ function HomeScreen({ user, favorites, setFavorites }) {
                 {favorites.map((item, i) => (
                   <div
                     key={item.id || i}
-                    className="bg-zinc-800 rounded-xl overflow-hidden shadow-lg select-none"
+                    className="bg-zinc-900 rounded-xl overflow-hidden shadow-lg select-none"
                   >
                     <img
                       src={item.img}
@@ -241,7 +246,7 @@ function HomeScreen({ user, favorites, setFavorites }) {
         <>
           <div className="w-full max-w-md mb-4 flex gap-2">
             <input
-              className="flex-1 px-3 py-2 rounded-lg bg-zinc-800 text-white"
+              className="flex-1 px-3 py-2 rounded-lg bg-zinc-900 text-white"
               placeholder="Enter ZIP code..."
               value={zip}
               onChange={(e) => setZip(e.target.value)}
@@ -267,14 +272,14 @@ function HomeScreen({ user, favorites, setFavorites }) {
           )}
 
           {loadingRestaurants && (
-            <p className="text-zinc-400 mb-4">Loading restaurants…</p>
+            <p className="text-zinc-300 mb-4">Loading restaurants…</p>
           )}
 
           {current ? (
             <>
               <div
                 className="
-                  w-96 bg-zinc-800 rounded-2xl overflow-hidden shadow-lg
+                  w-96 bg-zinc-900 rounded-2xl overflow-hidden shadow-lg
                   select-none cursor-grab active:cursor-grabbing
                 "
                 {...swipeHandlers}
@@ -319,7 +324,7 @@ function HomeScreen({ user, favorites, setFavorites }) {
               </div>
             </>
           ) : (
-            <p className="text-zinc-400 mt-10 text-center">
+            <p className="text-zinc-300 mt-10 text-center">
               {restaurants.length === 0
                 ? "Enter a ZIP code, pick a meal, and press Search."
                 : "No more restaurants. Try another ZIP or change the filter!"}
@@ -336,7 +341,6 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // favorites live at top level so they survive route changes + logout/login
   const [favorites, setFavorites] = useState([]);
 
   // Auth listener
@@ -350,7 +354,7 @@ export default function App() {
 
   // Load favorites from Firestore whenever user logs in
   useEffect(() => {
-    if (!user) return; // doesn't clear favorites here anymore
+    if (!user) return;
 
     const loadFavorites = async () => {
       try {
@@ -363,7 +367,7 @@ export default function App() {
           setFavorites(data.items || []);
         } else {
           console.log("No favorites doc yet for this user");
-          setFavorites([]); // first time this user uses favorites
+          setFavorites([]);
         }
       } catch (err) {
         console.error("Error loading favorites from Firestore:", err);
@@ -375,7 +379,14 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-900 text-white">
+      <div
+        className="min-h-screen flex items-center justify-center text-white"
+        style={{
+          background: "linear-gradient(135deg, #000000, #330000, #000000)",
+          fontFamily:
+            "'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+        }}
+      >
         Loading…
       </div>
     );
@@ -387,7 +398,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <nav className="w-full bg-zinc-800 text-white px-6 py-3 flex justify-center gap-10 shadow-md">
+      <nav className="w-full bg-zinc-900 text-white px-6 py-3 flex justify-center gap-10 shadow-md">
         <Link to="/" className="hover:text-zinc-300">
           Home
         </Link>
