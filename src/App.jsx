@@ -7,7 +7,7 @@ import Login from "./Login";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { ProfileScreen } from "./ProfileScreen";
 import Settings from "./Settings";
-import Sort from "./sort"; 
+import Sort from "./sort";
 
 // Yelp API Key
 const YELP_API_KEY =
@@ -29,61 +29,23 @@ function HomeScreen({ user, favorites, setFavorites }) {
   // Meal filter state
   const [filter, setFilter] = useState("all");
 
-  // Helper to classify Yelp businesses
-  const getMealTypeFromYelp = (business) => {
-    const title = (business.name || "").toLowerCase();
-    const aliases = (business.categories || []).map((c) =>
-      (c.alias || c.title || "").toLowerCase()
-    );
-
-    const breakfastAliases = [
-      "breakfast_brunch",
-      "cafes",
-      "coffee",
-      "donuts",
-      "bagels",
-      "bakeries",
-    ];
-    if (
-      aliases.some((a) => breakfastAliases.includes(a)) ||
-      title.includes("breakfast") ||
-      title.includes("brunch")
-    ) {
-      return "Breakfast";
+  // Map filter → Yelp category string
+  const getCategoriesForFilter = (filter) => {
+    switch (filter) {
+      case "Breakfast":
+        return "breakfast_brunch,cafes,coffee,donuts,bagels,bakeries";
+      case "Lunch":
+        return "sandwiches,burgers,pizza,mexican,salad,vegan,vegetarian,hotdogs,chinese,japanese,thai";
+      case "Dinner":
+        // You can tweak this if you want more specific dinner tags
+        return "restaurants";
+      default: // "all"
+        return "restaurants";
     }
-
-    const lunchAliases = [
-      "sandwiches",
-      "burgers",
-      "pizza",
-      "mexican",
-      "salad",
-      "vegan",
-      "vegetarian",
-      "hotdogs",
-      "chinese",
-      "japanese",
-      "thai",
-    ];
-    if (aliases.some((a) => lunchAliases.includes(a))) {
-      return "Lunch";
-    }
-
-    // Default to Dinner
-    return "Dinner";
   };
 
-  // Filter restaurants by mealType
-  const filteredRestaurants = restaurants.filter((r) =>
-    filter === "all" ? true : r.mealType === filter
-  );
-
-  const current = filteredRestaurants[index] || null;
-
-  // Whenever the set of restaurants or filter changes, reset index
-  useEffect(() => {
-    setIndex(0);
-  }, [filter, restaurants]);
+  // Current restaurant card
+  const current = restaurants[index] || null;
 
   // Save entire favorites array to Firestore
   const saveFavoritesToFirestore = async (items) => {
@@ -117,10 +79,12 @@ function HomeScreen({ user, favorites, setFavorites }) {
       setLoadingRestaurants(true);
       setIndex(0);
 
+      const categoriesParam = getCategoriesForFilter(filter);
+
       const res = await fetch(
         `${YELP_SEARCH_URL}?location=${encodeURIComponent(
           zip
-        )}&categories=restaurants&limit=8`,
+        )}&categories=${categoriesParam}&limit=8`,
         {
           headers: {
             Authorization: `Bearer ${YELP_API_KEY}`,
@@ -148,8 +112,6 @@ function HomeScreen({ user, favorites, setFavorites }) {
           b.location?.address1 ||
           "Address not available";
 
-        const mealType = getMealTypeFromYelp(b);
-
         return {
           id: b.id,
           name: b.name,
@@ -159,7 +121,8 @@ function HomeScreen({ user, favorites, setFavorites }) {
           price: b.price || "$$",
           rating: b.rating,
           address: fullAddress,
-          mealType, 
+          // label by current filter so favorites can show it
+          mealType: filter === "all" ? null : filter,
         };
       });
 
@@ -358,10 +321,8 @@ function HomeScreen({ user, favorites, setFavorites }) {
           ) : (
             <p className="text-zinc-400 mt-10 text-center">
               {restaurants.length === 0
-                ? "Enter a ZIP code and press Search."
-                : filteredRestaurants.length === 0
-                ? "No restaurants match this filter."
-                : "No more restaurants. Try another ZIP!"}
+                ? "Enter a ZIP code, pick a meal, and press Search."
+                : "No more restaurants. Try another ZIP or change the filter!"}
             </p>
           )}
         </>
