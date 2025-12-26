@@ -66,6 +66,12 @@ function HomeScreen({ user, favorites, setFavorites }) {
     await saveFavoritesToFirestore(empty);
   };
 
+  //Filter Items
+  const filterResturaunts = (cat) => {
+    const NewRest=
+    
+  }
+
   // Yelp Fetch
   const fetchRestaurants = async () => {
     if (!zip) {
